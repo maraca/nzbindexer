@@ -5,13 +5,24 @@ Indexes nzbs.
 __author__ = 'cozzi.martin@gmail.com'
 
 
+import argparse
 import logging
 import nntplib
 
 
 def main():
     """Entry point"""
-    pass
+    configs = get_configs()
+
+
+def get_configs():
+    """Get configs from argparse"""
+    parser = argparse.ArgumentParser(
+        description='Small client that connects to a newsgroup server')
+    parser.add_argument('--nzb_host', type=str, required=True,
+                        help='Newsgroup server url')
+    args = parser.parse_args()
+    return args
 
 
 def get_logger():
