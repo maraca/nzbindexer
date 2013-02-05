@@ -20,6 +20,8 @@ class NZBManager:
     NZBGroup = namedtuple('NZBGroup',
             ['response', 'count', 'first', 'last', 'name'])
 
+    HEADER = 'Subject'
+
     def __init__(self, configs):
         """Inits itself."""
         self.configs = configs
@@ -52,6 +54,18 @@ class NZBManager:
 
         return self.connection
 
+    def _get_oldest_header(self):
+        """Returns the oldest header inserted in the database."""
+        pass
+
+    def _get_most_recent_header(self):
+        """Returns the most recent header inserted in the database."""
+        pass
+
+    def _get_xhdr_string(self, first, last):
+        """Returns a string to query the Usenet server."""
+        return '{0} - {1}'.format(first, last)
+
     def set_group(self, group_name):
         """Sets the group for this manager.
 
@@ -65,6 +79,20 @@ class NZBManager:
         LOGGER.info('Count: %s', self.group.count)
         LOGGER.info('First: %s', self.group.first)
         LOGGER.info('Last: %s', self.group.last)
+
+    def get_headers(self, first, last):
+        """Gets headers from the remote server."""
+        connection = self._get_connection()
+
+        if self.group.name is None:
+            return tuple()
+
+        xhdr_query = self._get_xhdr_string(first, last)
+        LOGGER.debug('NNTP Query: %s', xhdr_query)
+
+        headers = connection.xhdr(self.HEADER, xhdr_query)
+        return headers
+
 
     def close(self):
         """Closes nntp connection."""
@@ -80,6 +108,11 @@ def main():
     configs = get_configs()
     manager = NZBManager(configs)
     manager.set_group(configs.nzb_group)
+
+    headers = manager.get_headers(int(manager.group.last) - configs.pagination,
+                                  manager.group.last)
+    for header in headers[1]:
+        print(header)
     manager.close()
 
 
@@ -95,6 +128,8 @@ def get_configs():
                         help='Newsgroup password')
     parser.add_argument('--nzb_group', type=str,
                         help='Newsgroup group to parse')
+    parser.add_argument('--pagination', type=int, default=100,
+                        help='Pagination size')
     args = parser.parse_args()
     if not args.nzb_password:
         args.nzb_password = getpass.getpass('Newsgroup password: ')
