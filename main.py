@@ -33,6 +33,7 @@ class NZBManager:
         """Inits itself."""
         self.configs = configs
         self.connection = self._get_connection()
+        self.group = None
 
     def _get_connection(self):
         """Connects to a remote Usenet server"""
