@@ -64,7 +64,7 @@ def main():
     """Entry point"""
     configs = get_configs()
     manager = NZBManager(configs)
-    manager.set_group('alt.binaries.tv')
+    manager.set_group(configs.nzb_group)
     manager.close()
 
 
@@ -78,6 +78,8 @@ def get_configs():
                         help='Newsgroup username')
     parser.add_argument('--nzb_password', type=str,
                         help='Newsgroup password')
+    parser.add_argument('--nzb_group', type=str,
+                        help='Newsgroup group to parse')
     args = parser.parse_args()
     if not args.nzb_password:
         args.nzb_password = getpass.getpass('Newsgroup password: ')
