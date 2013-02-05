@@ -11,11 +11,40 @@ import logging
 import nntplib
 
 
+class NZBManager:
+    """Manages connections and tasks and such."""
+
+    def __init__(self, configs):
+        """Inits itself."""
+        self.configs = configs
+        self.connection = self._get_connection()
+
+    def _get_connection(self):
+        """Connects to a remote Usenet server"""
+        connection = nntplib.NNTP(
+                self.configs.nzb_host,
+                user=self.configs.nzb_user,
+                password=self.configs.nzb_password)
+        LOGGER.info('Connected to %s as %s',
+                self.configs.nzb_host, self.configs.nzb_user)
+        LOGGER.info('Server says: "%s"', connection.getwelcome())
+        return connection
+
+    def close(self):
+        """Closes nntp connection."""
+        try:
+            self.connection.quit()
+            LOGGER.info('Connection closed.')
+        except nntplib.NNTPPermanentError as error:
+            LOGGER.info('Connection had already timeout.')
+
+
+
 def main():
     """Entry point"""
     configs = get_configs()
-    server = nntplib.NNTP(configs.nzb_host,
-            user=configs.nzb_user, password=configs.nzb_password)
+    manager = NZBManager(configs)
+    manager.close()
 
 
 def get_configs():
