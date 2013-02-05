@@ -6,6 +6,7 @@ __author__ = 'cozzi.martin@gmail.com'
 
 
 import argparse
+import getpass
 import logging
 import nntplib
 
@@ -13,6 +14,8 @@ import nntplib
 def main():
     """Entry point"""
     configs = get_configs()
+    server = nntplib.NNTP(configs.nzb_host,
+            user=configs.nzb_user, password=configs.nzb_password)
 
 
 def get_configs():
@@ -21,7 +24,13 @@ def get_configs():
         description='Small client that connects to a newsgroup server')
     parser.add_argument('--nzb_host', type=str, required=True,
                         help='Newsgroup server url')
+    parser.add_argument('--nzb_user', type=str, required=True,
+                        help='Newsgroup username')
+    parser.add_argument('--nzb_password', type=str,
+                        help='Newsgroup password')
     args = parser.parse_args()
+    if not args.nzb_password:
+        args.nzb_password = getpass.getpass('Newsgroup password: ')
     return args
 
 
