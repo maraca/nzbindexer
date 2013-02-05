@@ -20,19 +20,34 @@ class NZBManager:
     def __init__(self, configs):
         """Inits itself."""
         self.configs = configs
-        self.connection = self._get_connection()
+        self.connection = None
         self.group = None
 
-    def _get_connection(self):
+    def _connect(self):
         """Connects to a remote Usenet server"""
+        LOGGER.info('New remote connection')
         connection = nntplib.NNTP(
                 self.configs.nzb_host,
                 user=self.configs.nzb_user,
                 password=self.configs.nzb_password)
+        return connection
+
+    def _get_connection(self):
+        """Gives an existing connections, and reconnects if needed."""
+        if self.connection:
+            try:
+                return self.connection
+            except nntplib.NNTPPermanentError:
+                LOGGER.debug('Connection timeout. Reconnecting.')
+                self.connection = self._connect()
+        else:
+            self.connection = self._connect()
+
         LOGGER.info('Connected to %s as %s',
                 self.configs.nzb_host, self.configs.nzb_user)
-        LOGGER.info('Server says: "%s"', connection.getwelcome())
-        return connection
+        LOGGER.info('Server says: "%s"', self.connection.getwelcome())
+
+        return self.connection
 
     def set_group(self, group_name):
         """Sets the group for this manager.
@@ -43,17 +58,18 @@ class NZBManager:
         LOGGER.info('Setting group to %s', group_name)
         NZBGroup = namedtuple('NZBGroup',
                 ['response', 'count', 'first', 'last', 'name'])
-        self.group = NZBGroup(*self.connection.group(group_name))
+        self.group = NZBGroup(*self._get_connection().group(group_name))
 
         LOGGER.info('Group created: %s', self.group.name)
         LOGGER.info('Count: %s', self.group.count)
         LOGGER.info('First: %s', self.group.first)
         LOGGER.info('Last: %s', self.group.last)
 
+
     def close(self):
         """Closes nntp connection."""
         try:
-            self.connection.quit()
+            self._get_connection().quit()
             LOGGER.info('Connection closed.')
         except nntplib.NNTPPermanentError:
             LOGGER.info('Connection had already timeout.')
