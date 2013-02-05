@@ -17,11 +17,14 @@ from collections import namedtuple
 class NZBManager:
     """Manages connections and tasks and such."""
 
+    NZBGroup = namedtuple('NZBGroup',
+            ['response', 'count', 'first', 'last', 'name'])
+
     def __init__(self, configs):
         """Inits itself."""
         self.configs = configs
         self.connection = None
-        self.group = None
+        self.group = self.NZBGroup(*(None, ) * 5)
 
     def _connect(self):
         """Connects to a remote Usenet server"""
@@ -56,15 +59,12 @@ class NZBManager:
         good reason to create a separate class.
         """
         LOGGER.info('Setting group to %s', group_name)
-        NZBGroup = namedtuple('NZBGroup',
-                ['response', 'count', 'first', 'last', 'name'])
-        self.group = NZBGroup(*self._get_connection().group(group_name))
+        self.group = self.NZBGroup(*self._get_connection().group(group_name))
 
         LOGGER.info('Group created: %s', self.group.name)
         LOGGER.info('Count: %s', self.group.count)
         LOGGER.info('First: %s', self.group.first)
         LOGGER.info('Last: %s', self.group.last)
-
 
     def close(self):
         """Closes nntp connection."""
