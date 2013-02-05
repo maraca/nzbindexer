@@ -11,6 +11,21 @@ import logging
 import nntplib
 
 
+class NZBGroup:
+    """NZBGroup"""
+
+    def __init__(self, count, first, last, name):
+        """Init stuff"""
+        self.count = count
+        self.first = first
+        self.last = last
+        self.name = name
+        LOGGER.info('Group created: %s', self.name)
+        LOGGER.info('Count: %s', self.count)
+        LOGGER.info('First: %s', self.first)
+        LOGGER.info('Last: %s', self.last)
+
+
 class NZBManager:
     """Manages connections and tasks and such."""
 
@@ -18,10 +33,6 @@ class NZBManager:
         """Inits itself."""
         self.configs = configs
         self.connection = self._get_connection()
-        self.count = None
-        self.first = None
-        self.last = None
-        self.name = None
 
     def _get_connection(self):
         """Connects to a remote Usenet server"""
@@ -37,8 +48,8 @@ class NZBManager:
     def set_group(self, group_name):
         """Sets the group for this manager."""
         LOGGER.info('Setting group to %s', group_name)
-        _, self.count, self.first, self.last, self.name = \
-                self.connection.group(group_name)
+        _, count, first, last, name = self.connection.group(group_name)
+        self.group = NZBGroup(count, first, last, name)
 
     def close(self):
         """Closes nntp connection."""
