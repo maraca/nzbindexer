@@ -18,6 +18,10 @@ class NZBManager:
         """Inits itself."""
         self.configs = configs
         self.connection = self._get_connection()
+        self.count = None
+        self.first = None
+        self.last = None
+        self.name = None
 
     def _get_connection(self):
         """Connects to a remote Usenet server"""
@@ -30,6 +34,12 @@ class NZBManager:
         LOGGER.info('Server says: "%s"', connection.getwelcome())
         return connection
 
+    def set_group(self, group_name):
+        """Sets the group for this manager."""
+        LOGGER.info('Setting group to %s', group_name)
+        _, self.count, self.first, self.last, self.name =\
+                self.connection.group(group_name)
+
     def close(self):
         """Closes nntp connection."""
         try:
@@ -39,11 +49,11 @@ class NZBManager:
             LOGGER.info('Connection had already timeout.')
 
 
-
 def main():
     """Entry point"""
     configs = get_configs()
     manager = NZBManager(configs)
+    manager.set_group('alt.binaries.tv')
     manager.close()
 
 
