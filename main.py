@@ -37,7 +37,7 @@ class NZBManager:
     def set_group(self, group_name):
         """Sets the group for this manager."""
         LOGGER.info('Setting group to %s', group_name)
-        _, self.count, self.first, self.last, self.name =\
+        _, self.count, self.first, self.last, self.name = \
                 self.connection.group(group_name)
 
     def close(self):
@@ -45,7 +45,7 @@ class NZBManager:
         try:
             self.connection.quit()
             LOGGER.info('Connection closed.')
-        except nntplib.NNTPPermanentError as error:
+        except nntplib.NNTPPermanentError:
             LOGGER.info('Connection had already timeout.')
 
 
@@ -74,6 +74,7 @@ def get_configs():
 
 
 def get_logger():
+    """Builds up a basic python logger."""
     logger = logging.getLogger('nzbindexer')
     logger.setLevel(logging.DEBUG)
     console = logging.StreamHandler()
