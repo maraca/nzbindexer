@@ -11,19 +11,7 @@ import logging
 import nntplib
 
 
-class NZBGroup:
-    """NZBGroup"""
-
-    def __init__(self, count, first, last, name):
-        """Init stuff"""
-        self.count = count
-        self.first = first
-        self.last = last
-        self.name = name
-        LOGGER.info('Group created: %s', self.name)
-        LOGGER.info('Count: %s', self.count)
-        LOGGER.info('First: %s', self.first)
-        LOGGER.info('Last: %s', self.last)
+from collections import namedtuple
 
 
 class NZBManager:
@@ -47,10 +35,20 @@ class NZBManager:
         return connection
 
     def set_group(self, group_name):
-        """Sets the group for this manager."""
+        """Sets the group for this manager.
+
+        Here we make use of namedtuple since we don't really have a
+        good reason to create a separate class.
+        """
         LOGGER.info('Setting group to %s', group_name)
-        _, count, first, last, name = self.connection.group(group_name)
-        self.group = NZBGroup(count, first, last, name)
+        NZBGroup = namedtuple('NZBGroup',
+                ['response', 'count', 'first', 'last', 'name'])
+        self.group = NZBGroup(*self.connection.group(group_name))
+
+        LOGGER.info('Group created: %s', self.group.name)
+        LOGGER.info('Count: %s', self.group.count)
+        LOGGER.info('First: %s', self.group.first)
+        LOGGER.info('Last: %s', self.group.last)
 
     def close(self):
         """Closes nntp connection."""
