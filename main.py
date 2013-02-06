@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Indexes nzbs.
+Pulls data from Usenet and indexes it *somewhere*.
 """
 __author__ = 'cozzi.martin@gmail.com'
 
@@ -14,10 +14,10 @@ import nntplib
 from collections import namedtuple
 
 
-class NZBManager:
+class UsenetManager:
     """Manages connections and tasks and such."""
 
-    NZBGroup = namedtuple('NZBGroup',
+    NewsGroup = namedtuple('NewsGroup',
             ['response', 'count', 'first', 'last', 'name'])
 
     HEADER = 'Subject'
@@ -26,15 +26,15 @@ class NZBManager:
         """Inits itself."""
         self.configs = configs
         self.connection = None
-        self.group = self.NZBGroup(*(None, ) * 5)
+        self.group = self.NewsGroup(*(None, ) * 5)
 
     def _connect(self):
         """Connects to a remote Usenet server"""
         LOGGER.info('New remote connection')
         connection = nntplib.NNTP(
-                self.configs.nzb_host,
-                user=self.configs.nzb_user,
-                password=self.configs.nzb_password)
+                self.configs.usenet_host,
+                user=self.configs.usenet_user,
+                password=self.configs.usenet_password)
         return connection
 
     def _get_connection(self):
@@ -49,7 +49,7 @@ class NZBManager:
             self.connection = self._connect()
 
         LOGGER.info('Connected to %s as %s',
-                self.configs.nzb_host, self.configs.nzb_user)
+                self.configs.usenet_host, self.configs.usenet_user)
         LOGGER.info('Server says: "%s"', self.connection.getwelcome())
 
         return self.connection
@@ -73,7 +73,7 @@ class NZBManager:
         good reason to create a separate class.
         """
         LOGGER.info('Setting group to %s', group_name)
-        self.group = self.NZBGroup(*self._get_connection().group(group_name))
+        self.group = self.NewsGroup(*self._get_connection().group(group_name))
 
         LOGGER.info('Group created: %s', self.group.name)
         LOGGER.info('Count: %s', self.group.count)
@@ -106,8 +106,8 @@ class NZBManager:
 def main():
     """Entry point"""
     configs = get_configs()
-    manager = NZBManager(configs)
-    manager.set_group(configs.nzb_group)
+    manager = UsenetManager(configs)
+    manager.set_group(configs.usenet_group)
 
     headers = manager.get_headers(int(manager.group.last) - configs.pagination,
                                   manager.group.last)
@@ -120,25 +120,25 @@ def get_configs():
     """Get configs from argparse"""
     parser = argparse.ArgumentParser(
         description='Small client that connects to a newsgroup server')
-    parser.add_argument('--nzb_host', type=str, required=True,
-                        help='Newsgroup server url')
-    parser.add_argument('--nzb_user', type=str, required=True,
-                        help='Newsgroup username')
-    parser.add_argument('--nzb_password', type=str,
-                        help='Newsgroup password')
-    parser.add_argument('--nzb_group', type=str, required=True,
-                        help='Newsgroup group to parse')
+    parser.add_argument('--usenet-host', type=str, required=True,
+                        help='Usenet provider server url')
+    parser.add_argument('--usenet-user', type=str, required=True,
+                        help='Usenet provider username')
+    parser.add_argument('--usenet-password', type=str,
+                        help='Usenet provider password')
+    parser.add_argument('--usenet-group', type=str, required=True,
+                        help='Usenet group to parse')
     parser.add_argument('--pagination', type=int, default=100,
                         help='Pagination size')
     args = parser.parse_args()
-    if not args.nzb_password:
-        args.nzb_password = getpass.getpass('Newsgroup password: ')
+    if not args.usenet_password:
+        args.usenet_password = getpass.getpass('Usenet password: ')
     return args
 
 
 def get_logger():
     """Builds up a basic python logger."""
-    logger = logging.getLogger('nzbindexer')
+    logger = logging.getLogger('usenet_indexer')
     logger.setLevel(logging.DEBUG)
     console = logging.StreamHandler()
     console.setLevel(logging.DEBUG)
