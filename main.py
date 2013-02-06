@@ -126,7 +126,7 @@ def get_configs():
                         help='Newsgroup username')
     parser.add_argument('--nzb_password', type=str,
                         help='Newsgroup password')
-    parser.add_argument('--nzb_group', type=str,
+    parser.add_argument('--nzb_group', type=str, required=True,
                         help='Newsgroup group to parse')
     parser.add_argument('--pagination', type=int, default=100,
                         help='Pagination size')
