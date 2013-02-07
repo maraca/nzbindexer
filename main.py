@@ -12,11 +12,14 @@ import nntplib
 
 
 from collections import namedtuple
+from regexes import RegexRouter
+from regexes.constants import REGEXES
 
 
 class UsenetManager:
     """Manages connections and tasks and such."""
 
+    News = namedtuple('News', ['uuid', 'part'])
     NewsGroup = namedtuple('NewsGroup',
             ['response', 'count', 'first', 'last', 'name'])
 
@@ -27,6 +30,7 @@ class UsenetManager:
         self.configs = configs
         self.connection = None
         self.group = self.NewsGroup(*(None, ) * 5)
+        self.fishnet = {}
 
     def _connect(self):
         """Connects to a remote Usenet server"""
@@ -66,6 +70,18 @@ class UsenetManager:
         """Returns a string to query the Usenet server."""
         return '{0} - {1}'.format(first, last)
 
+    def _get_header_data(self, header):
+        """Extracts the name and the part from a header"""
+        data = self.router.parse(header[1])
+        if data:
+            data = data.groupdict()
+            news = self.News(uuid=header[0], part=data.get('parts'))
+            if self.fishnet.get(data.get('name')) is None:
+                self.fishnet[data.get('name')] = set()
+
+            self.fishnet[data.get('name')].add(news)
+
+
     def set_group(self, group_name):
         """Sets the group for this manager.
 
@@ -79,6 +95,7 @@ class UsenetManager:
         LOGGER.info('Count: %s', self.group.count)
         LOGGER.info('First: %s', self.group.first)
         LOGGER.info('Last: %s', self.group.last)
+        self.router = RegexRouter(self.group)
 
     def get_headers(self, first, last):
         """Gets headers from the remote server."""
@@ -93,6 +110,8 @@ class UsenetManager:
         headers = connection.xhdr(self.HEADER, xhdr_query)
         return headers
 
+    def get_info(self, header):
+        self._get_header_data(header)
 
     def close(self):
         """Closes nntp connection."""
@@ -112,7 +131,9 @@ def main():
     headers = manager.get_headers(int(manager.group.last) - configs.pagination,
                                   manager.group.last)
     for header in headers[1]:
-        print(header)
+        manager.get_info(header)
+
+    print(manager.fishnet)
     manager.close()
 
 
