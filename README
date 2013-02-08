@@ -1,0 +1,1 @@
+./main.py  --usenet-host=news.giganews.com --usenet-user=username --usenet-group=alt.binaries.tv 
