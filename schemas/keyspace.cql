@@ -7,4 +7,6 @@ CREATE TABLE segments (
     number int,
     title varchar,
     PRIMARY KEY (title, number)
- );
+ )
+    WITH
+    comment='Also knows as parts, segments represent a list of yEnc files that must be grouped in order to download a single file.';
