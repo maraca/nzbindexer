@@ -11,7 +11,7 @@ from regexes import RegexRouter
 from regexes.constants import REGEXES
 
 
-LOGGER = logging.getLogger('usenet_manager')
+LOGGER = logging.getLogger('usenet_indexer')
 
 
 class UsenetManager:
