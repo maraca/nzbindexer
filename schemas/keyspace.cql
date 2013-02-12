@@ -16,3 +16,18 @@ CREATE TABLE files (
     WITH
     comment='Lists of segments associated with a file.';
 
+
+-- stores information about the status of data retrieval for a newsgroup
+-- "name" represents the name of the group eg: alt.binaries.tv
+-- "server" represents a usenet provider   eg: news.giganews.com
+-- "first" represents the first article_number in the queue that has been parsed
+-- "last" represents the latest article_number that has been parsed
+-- we assume all items between first and last have been parsed.
+CREATE TABLE newsgroups (
+    name varchar,
+    server varchar,
+    first int,
+    last int,
+    PRIMARY KEY (name, server))
+    WITH
+    comment='Newsgroup the user has chose to index, associated with a usenet server';
