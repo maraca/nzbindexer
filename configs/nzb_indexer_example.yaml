@@ -1,0 +1,14 @@
+usenet:
+    host: news.usenetprovider.com
+    user: username
+    password: ******
+    groups:
+        - alt.binaries.tv
+        - alt.binaries.teevee
+    pagination: 100
+
+cassandra:
+    host: localhost
+    port: 9160
+    keyspace: news
+    cql_version: 3.0.0

@@ -34,9 +34,9 @@ class UsenetManager:
         """Connects to a remote Usenet server"""
         LOGGER.info('New remote connection')
         connection = nntplib.NNTP(
-                self.configs.usenet_host,
-                user=self.configs.usenet_user,
-                password=self.configs.usenet_password)
+                self.configs['host'],
+                user=self.configs['user'],
+                password=self.configs['password'])
         return connection
 
     def _get_connection(self):
@@ -51,7 +51,7 @@ class UsenetManager:
             self.connection = self._connect()
 
         LOGGER.info('Connected to %s as %s',
-                self.configs.usenet_host, self.configs.usenet_user)
+                self.configs['host'], self.configs['user'])
         LOGGER.info('Server says: "%s"', self.connection.getwelcome())
 
         return self.connection

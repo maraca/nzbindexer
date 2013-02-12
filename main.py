@@ -8,6 +8,7 @@ __author__ = 'cozzi.martin@gmail.com'
 import argparse
 import getpass
 import logging
+import yaml
 
 from collections import namedtuple
 from usenet import UsenetManager
@@ -16,11 +17,13 @@ from usenet import UsenetManager
 def main():
     """Entry point"""
     configs = get_configs()
-    manager = UsenetManager(configs)
-    manager.set_group(configs.usenet_group)
+    configs = configs.configs
+    manager = UsenetManager(configs['usenet'])
+    manager.set_group(configs['usenet']['groups'][0])
 
-    headers = manager.get_headers(int(manager.group.last) - configs.pagination,
-                                  manager.group.last)
+    start = int(manager.group.last) - configs['usenet']['pagination']
+    last =  int(manager.group.last)
+    headers = manager.get_headers(start, last)
     for header in headers[1]:
         manager.get_info(header)
 
@@ -32,18 +35,13 @@ def get_configs():
     """Get configs from argparse"""
     parser = argparse.ArgumentParser(
         description='Small client that connects to a newsgroup server')
-    parser.add_argument('--usenet-host', type=str, required=True,
-                        help='Usenet provider server url')
-    parser.add_argument('--usenet-user', type=str, required=True,
-                        help='Usenet provider username')
-    parser.add_argument('--usenet-password', type=str,
-                        help='Usenet provider password')
-    parser.add_argument('--usenet-group', type=str, required=True,
-                        help='Usenet group to parse')
-    parser.add_argument('--pagination', type=int, default=100,
-                        help='Pagination size')
+    parser.add_argument('--config-file', type=str, required=True,
+                        help='Path to configs.yaml')
     args = parser.parse_args()
-    if not args.usenet_password:
+    with open(args.config_file) as configurations:
+        args.configs = yaml.load(configurations)
+
+    if not args.configs['usenet'].get('password'):
         args.usenet_password = getpass.getpass('Usenet password: ')
     return args
 

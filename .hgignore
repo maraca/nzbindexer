@@ -1,3 +1,4 @@
 syntax: glob
 *.swp
 *.pyc
+configs/nzb_indexer.yaml
