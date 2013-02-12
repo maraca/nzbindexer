@@ -17,7 +17,7 @@ LOGGER = logging.getLogger('usenet_indexer')
 class UsenetManager:
     """Manages connections and tasks and such."""
 
-    News = namedtuple('News', ['uuid', 'part'])
+    News = namedtuple('News', ['subject', 'message_id', 'segment'])
     NewsGroup = namedtuple('NewsGroup',
             ['response', 'count', 'first', 'last', 'name'])
 
@@ -25,7 +25,7 @@ class UsenetManager:
 
     def __init__(self, configs):
         """Inits itself."""
-        self.configs = configs
+        self.configs = configs['usenet']
         self.connection = None
         self.group = self.NewsGroup(*(None, ) * 5)
         self.fishnet = {}
@@ -68,17 +68,26 @@ class UsenetManager:
         """Returns a string to query the Usenet server."""
         return '{0} - {1}'.format(first, last)
 
-    def _get_header_data(self, header):
+    def get_header_data(self, header):
         """Extracts the name and the part from a header"""
+        article_number = header[0]
         data = self.router.parse(header[1])
         if data:
             data = data.groupdict()
-            news = self.News(uuid=header[0], part=data.get('parts'))
+            news = self.News(subject=data.get('name'),
+                             message_id=self.get_message_id(article_number),
+                             segment=data.get('parts'))
+
             if self.fishnet.get(data.get('name')) is None:
                 self.fishnet[data.get('name')] = set()
 
             self.fishnet[data.get('name')].add(news)
 
+            return news
+
+    def get_message_id(self, article_number):
+        """Returns the Message-ID for a article number and strips out the <>"""
+        return self.connection.stat(article_number)[2][1:-1]
 
     def set_group(self, group_name):
         """Sets the group for this manager.
@@ -106,10 +115,7 @@ class UsenetManager:
         LOGGER.debug('NNTP Query: %s', xhdr_query)
 
         headers = connection.xhdr(self.HEADER, xhdr_query)
-        return headers
-
-    def get_info(self, header):
-        self._get_header_data(header)
+        return headers[1]  # [0] is useless information
 
     def close(self):
         """Closes nntp connection."""

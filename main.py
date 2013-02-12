@@ -11,6 +11,7 @@ import logging
 import yaml
 
 from collections import namedtuple
+from indexer import NewsGroupIndexer
 from usenet import UsenetManager
 
 
@@ -18,16 +19,20 @@ def main():
     """Entry point"""
     configs = get_configs()
     configs = configs.configs
-    manager = UsenetManager(configs['usenet'])
-    manager.set_group(configs['usenet']['groups'][0])
+    group = configs['usenet']['groups'][0]
+    manager = UsenetManager(configs)
+    manager.set_group(group)
+
+    indexer = NewsGroupIndexer(configs['cassandra'])
 
     start = int(manager.group.last) - configs['usenet']['pagination']
     last =  int(manager.group.last)
     headers = manager.get_headers(start, last)
-    for header in headers[1]:
-        manager.get_info(header)
 
-    print(manager.fishnet)
+    for header in headers:
+        data = manager.get_header_data(header)
+        indexer.add_segment(data.subject, data.segment, data.message_id, group)
+
     manager.close()
 
 
